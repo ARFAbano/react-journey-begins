@@ -59,7 +59,18 @@ const Register = () => {
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
               </div>
+
               <div className="space-y-2">
+  <Label>College</Label>
+  <Input
+    type="text"
+    placeholder="Enter your college name"
+    value={college}
+    onChange={(e) => setCollege(e.target.value)}
+    required
+  />
+</div>
+              {/* <div className="space-y-2">
                 <Label>College</Label>
                 <Select value={college} onValueChange={setCollege} required>
                   <SelectTrigger><SelectValue placeholder="Select your college" /></SelectTrigger>
@@ -67,7 +78,7 @@ const Register = () => {
                     {COLLEGES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
               <div className="space-y-2">
                 <Label>Role</Label>
                 <Select value={role} onValueChange={v => setRole(v as UserRole)}>
