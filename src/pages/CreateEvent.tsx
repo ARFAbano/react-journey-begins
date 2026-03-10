@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { EventCategory } from '@/types';
+import { CalendarDays, MapPin, Type, FileText, Tag, ArrowLeft, Rocket } from 'lucide-react';
 
 const CreateEvent = () => {
   const { user, isAuthenticated } = useAuth();
@@ -29,74 +29,71 @@ const CreateEvent = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addEvent({
-      collegeId: user.id,
-      collegeName: user.college,
-      title,
-      description,
-      category,
-      location,
-      startDate,
-      endDate,
-    });
+    addEvent({ collegeId: user.id, collegeName: user.college, title, description, category, location, startDate, endDate });
     toast({ title: 'Event created!', description: `"${title}" has been published.` });
     navigate('/dashboard');
   };
 
   return (
-    <div className="container max-w-2xl py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-2xl">Create New Event</CardTitle>
-          <CardDescription>Fill in the details to publish an event for {user.college}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="container max-w-2xl py-8 space-y-6">
+      <div>
+        <button onClick={() => navigate('/dashboard')} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-4">
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
+        </button>
+        <div className="page-header section-fade">
+          <h1 className="font-display text-3xl font-bold text-foreground">Create New Event</h1>
+          <p className="text-muted-foreground mt-1">Publish an event for {user.college}</p>
+        </div>
+      </div>
+
+      <div className="glass-card rounded-2xl p-6 sm:p-8 section-fade-delay-1">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="title" className="flex items-center gap-1.5"><Type className="h-3.5 w-3.5 text-accent" />Event Title</Label>
+            <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Annual Hackathon 2026" className="h-11 rounded-xl" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description" className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5 text-accent" />Description</Label>
+            <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the event in detail..." rows={4} className="rounded-xl" required />
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="title">Event Title</Label>
-              <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Annual Hackathon 2026" required />
+              <Label className="flex items-center gap-1.5"><Tag className="h-3.5 w-3.5 text-accent" />Category</Label>
+              <Select value={category} onValueChange={v => setCategory(v as EventCategory)}>
+                <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hackathon">💻 Hackathon</SelectItem>
+                  <SelectItem value="sports">⚽ Sports</SelectItem>
+                  <SelectItem value="cultural">🎭 Cultural</SelectItem>
+                  <SelectItem value="workshop">🔧 Workshop</SelectItem>
+                  <SelectItem value="seminar">📚 Seminar</SelectItem>
+                  <SelectItem value="other">📌 Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the event..." rows={4} required />
+              <Label htmlFor="location" className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-accent" />Location</Label>
+              <Input id="location" value={location} onChange={e => setLocation(e.target.value)} placeholder="Event venue" className="h-11 rounded-xl" required />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={category} onValueChange={v => setCategory(v as EventCategory)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hackathon">Hackathon</SelectItem>
-                    <SelectItem value="sports">Sports</SelectItem>
-                    <SelectItem value="cultural">Cultural</SelectItem>
-                    <SelectItem value="workshop">Workshop</SelectItem>
-                    <SelectItem value="seminar">Seminar</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input id="location" value={location} onChange={e => setLocation(e.target.value)} placeholder="Event venue" required />
-              </div>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="start" className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-accent" />Start Date & Time</Label>
+              <Input id="start" type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} className="h-11 rounded-xl" required />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="start">Start Date & Time</Label>
-                <Input id="start" type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="end">End Date & Time</Label>
-                <Input id="end" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} required />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="end" className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-accent" />End Date & Time</Label>
+              <Input id="end" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} className="h-11 rounded-xl" required />
             </div>
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" className="flex-1">Publish Event</Button>
-              <Button type="button" variant="outline" onClick={() => navigate('/dashboard')}>Cancel</Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <Button type="submit" className="flex-1 h-11 rounded-xl gradient-campus border-0 text-primary-foreground hover:opacity-90 font-semibold gap-2">
+              <Rocket className="h-4 w-4" /> Publish Event
+            </Button>
+            <Button type="button" variant="outline" onClick={() => navigate('/dashboard')} className="rounded-xl h-11">Cancel</Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
