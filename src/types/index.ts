@@ -28,6 +28,19 @@ export interface Registration {
   id: string;
   eventId: string;
   userId: string;
+  userName: string;
+  userEmail: string;
+  userCollege: string;
   status: 'pending' | 'approved' | 'rejected';
   registeredAt: string;
+}
+
+export interface Feedback {
+  id: string;
+  eventId: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  comments: string;
+  timestamp: string;
 }
