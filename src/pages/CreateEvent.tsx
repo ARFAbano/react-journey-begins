@@ -27,9 +27,9 @@ const CreateEvent = () => {
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
   if (user.role !== 'college_admin') return <Navigate to="/dashboard" replace />;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addEvent({
+    const success = await addEvent({
       collegeId: user.id,
       collegeName: user.college,
       title,
@@ -39,8 +39,13 @@ const CreateEvent = () => {
       startDate,
       endDate,
     });
-    toast({ title: 'Event created!', description: `"${title}" has been published.` });
-    navigate('/dashboard');
+
+    if (success) {
+      toast({ title: 'Event created!', description: `"${title}" has been published.` });
+      navigate('/dashboard');
+    } else {
+      toast({ title: 'Error', description: 'Failed to create event.', variant: 'destructive' });
+    }
   };
 
   return (

@@ -29,7 +29,12 @@ const Navbar = () => {
                   Events
                 </Button>
               </Link>
-              <Link to="/dashboard">
+              <Link to={
+                user?.role === 'student' ? '/student-dashboard' :
+                  user?.role === 'college_admin' ? '/admin-dashboard' :
+                    user?.role === 'super_admin' ? '/super-admin-dashboard' :
+                      '/dashboard'
+              }>
                 <Button variant="ghost" size="sm" className="gap-1.5">
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard

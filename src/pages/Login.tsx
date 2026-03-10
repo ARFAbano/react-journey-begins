@@ -15,13 +15,17 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email, password)) {
+    const result = await login(email, password);
+    if (result.success) {
       toast({ title: 'Welcome back!', description: 'You have been logged in successfully.' });
-      navigate('/dashboard');
+      if (result.role === 'student') navigate('/student-dashboard');
+      else if (result.role === 'college_admin') navigate('/admin-dashboard');
+      else if (result.role === 'super_admin') navigate('/super-admin-dashboard');
+      else navigate('/dashboard');
     } else {
-      toast({ title: 'Login failed', description: 'Invalid credentials. Try demo accounts.', variant: 'destructive' });
+      toast({ title: 'Login failed', description: 'Invalid credentials. Please try again.', variant: 'destructive' });
     }
   };
 

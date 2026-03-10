@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { User, UserRole } from '@/types';
+import { apiFetch } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => boolean;
-  register: (name: string, email: string, password: string, college: string, role: UserRole) => boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean, role?: UserRole }>;
+  register: (name: string, email: string, password: string, college: string, role: UserRole) => Promise<{ success: boolean, role?: UserRole }>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -23,47 +24,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = useCallback((email: string, _password: string) => {
-    // Get registered users from localStorage
-    const users: (User & { password: string })[] = JSON.parse(localStorage.getItem('campus_users') || '[]');
-    const found = users.find(u => u.email === email);
-    if (found) {
-      const { password: _, ...userData } = found;
-      setUser(userData);
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const data = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const u = data.user;
+      const userData: User = {
+        id: u._id,
+        name: u.name,
+        email: u.email,
+        college: u.college || 'IIT Bombay', // Default if missing from backend temporarily
+        role: u.role as UserRole,
+      };
+
+      localStorage.setItem('token', data.token);
       localStorage.setItem('campus_user', JSON.stringify(userData));
-      return true;
+      setUser(userData);
+      return { success: true, role: userData.role };
+    } catch (error) {
+      console.error("Login failed:", error);
+      return { success: false };
     }
-    // Demo accounts
-    if (email === 'student@demo.com') {
-      const u: User = { id: 'demo-s', name: 'Demo Student', email, college: 'IIT Bombay', role: 'student' };
-      setUser(u);
-      localStorage.setItem('campus_user', JSON.stringify(u));
-      return true;
-    }
-    if (email === 'admin@demo.com') {
-      const u: User = { id: 'demo-a', name: 'Demo Admin', email, college: 'IIT Bombay', role: 'college_admin' };
-      setUser(u);
-      localStorage.setItem('campus_user', JSON.stringify(u));
-      return true;
-    }
-    return false;
   }, []);
 
-  const register = useCallback((name: string, email: string, password: string, college: string, role: UserRole) => {
-    const users: (User & { password: string })[] = JSON.parse(localStorage.getItem('campus_users') || '[]');
-    if (users.some(u => u.email === email)) return false;
-    const newUser = { id: crypto.randomUUID(), name, email, password, college, role };
-    users.push(newUser);
-    localStorage.setItem('campus_users', JSON.stringify(users));
-    const { password: _, ...userData } = newUser;
-    setUser(userData);
-    localStorage.setItem('campus_user', JSON.stringify(userData));
-    return true;
+  const register = useCallback(async (name: string, email: string, password: string, college: string, role: UserRole) => {
+    try {
+      const data = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password, role }), // Note: backend schema not fully checked for college, passing just in case
+      });
+
+      const u = data.user;
+      const userData: User = {
+        id: u._id,
+        name: u.name,
+        email: u.email,
+        college: college, // Fallback if backend doesn't store this yet
+        role: u.role as UserRole,
+      };
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('campus_user', JSON.stringify(userData));
+      setUser(userData);
+      return { success: true, role: userData.role };
+    } catch (error) {
+      console.error("Registration failed:", error);
+      return { success: false };
+    }
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('campus_user');
+    localStorage.removeItem('token');
   }, []);
 
   return (

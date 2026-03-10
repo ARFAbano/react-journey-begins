@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GraduationCap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { COLLEGES } from '@/data/mockData';
 import { UserRole } from '@/types';
 
 const Register = () => {
@@ -21,13 +20,17 @@ const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (register(name, email, password, college, role)) {
+    const result = await register(name, email, password, college, role);
+    if (result.success) {
       toast({ title: 'Account created!', description: 'Welcome to CampusEventHub.' });
-      navigate('/dashboard');
+      if (result.role === 'student') navigate('/student-dashboard');
+      else if (result.role === 'college_admin') navigate('/admin-dashboard');
+      else if (result.role === 'super_admin') navigate('/super-admin-dashboard');
+      else navigate('/dashboard');
     } else {
-      toast({ title: 'Registration failed', description: 'Email already exists.', variant: 'destructive' });
+      toast({ title: 'Registration failed', description: 'Registration failed. Email might already exist.', variant: 'destructive' });
     }
   };
 
@@ -60,13 +63,8 @@ const Register = () => {
                 <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
               </div>
               <div className="space-y-2">
-                <Label>College</Label>
-                <Select value={college} onValueChange={setCollege} required>
-                  <SelectTrigger><SelectValue placeholder="Select your college" /></SelectTrigger>
-                  <SelectContent>
-                    {COLLEGES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="college">College Name</Label>
+                <Input id="college" value={college} onChange={e => setCollege(e.target.value)} placeholder="Enter your college name" required />
               </div>
               <div className="space-y-2">
                 <Label>Role</Label>
