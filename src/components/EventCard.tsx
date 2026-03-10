@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom';
 import { CollegeEvent } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { CalendarDays, MapPin, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -13,7 +15,7 @@ const categoryColors: Record<string, string> = {
   other: 'bg-muted text-muted-foreground',
 };
 
-const EventCard = ({ event }: { event: CollegeEvent }) => {
+const EventCard = ({ event, showManage }: { event: CollegeEvent; showManage?: boolean }) => {
   const startDate = new Date(event.startDate);
   const endDate = new Date(event.endDate);
 
@@ -45,6 +47,16 @@ const EventCard = ({ event }: { event: CollegeEvent }) => {
             <MapPin className="h-3.5 w-3.5 text-accent" />
             {event.location}
           </div>
+        </div>
+        <div className="flex gap-2 pt-1">
+          <Link to={`/events/${event.id}`} className="flex-1">
+            <Button variant="outline" size="sm" className="w-full">View Details</Button>
+          </Link>
+          {showManage && (
+            <Link to={`/manage/${event.id}`}>
+              <Button size="sm" variant="secondary">Manage</Button>
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>

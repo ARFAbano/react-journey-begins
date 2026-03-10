@@ -1,3 +1,4 @@
+import React from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useEvents } from '@/context/EventContext';
