@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useEvents } from '@/context/EventContext';
@@ -32,35 +32,49 @@ const EventDetail = () => {
   const { id } = useParams();
   const { events } = useEvents();
   const { user, isAuthenticated } = useAuth();
-  const { registerForEvent, isRegistered, getEventRegistrations } = useRegistrations();
-  const { addFeedback, getEventFeedbacks, hasUserFeedback } = useFeedback();
+  const { registrations, registerForEvent, isRegistered } = useRegistrations();
+  const { feedbacks, addFeedback, loadEventFeedbacks, hasUserFeedback } = useFeedback();
   const { toast } = useToast();
 
   const [rating, setRating] = useState(5);
   const [comments, setComments] = useState('');
 
   const event = events.find(e => e.id === id);
+
+  // Load feedbacks for this event on mount
+  useEffect(() => {
+    if (id) loadEventFeedbacks(id);
+  }, [id, loadEventFeedbacks]);
+
   if (!event) return <Navigate to="/events" replace />;
 
   const registered = user ? isRegistered(event.id, user.id) : false;
-  const userReg = user ? getEventRegistrations(event.id).find(r => r.userId === user.id) : null;
-  const feedbacks = getEventFeedbacks(event.id);
+  const userReg = user ? registrations.find(r => r.eventId === event.id && r.userId === user.id) : null;
+  const eventFeedbacks = feedbacks.filter(f => f.eventId === event.id);
   const alreadyFeedback = user ? hasUserFeedback(event.id, user.id) : false;
-  const avgRating = feedbacks.length > 0 ? (feedbacks.reduce((s, f) => s + f.rating, 0) / feedbacks.length).toFixed(1) : null;
-  const regCount = getEventRegistrations(event.id).length;
+  const avgRating = eventFeedbacks.length > 0 ? (eventFeedbacks.reduce((s, f) => s + f.rating, 0) / eventFeedbacks.length).toFixed(1) : null;
+  const regCount = registrations.filter(r => r.eventId === event.id).length;
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!user) return;
-    registerForEvent({ eventId: event.id, userId: user.id, userName: user.name, userEmail: user.email, userCollege: user.college });
-    toast({ title: 'Registered!', description: 'Your registration is pending approval.' });
+    const result = await registerForEvent(event.id);
+    if (result.ok) {
+      toast({ title: 'Registered!', description: 'Your registration is pending approval.' });
+    } else {
+      toast({ title: 'Registration failed', description: result.error ?? 'Please try again.', variant: 'destructive' });
+    }
   };
 
-  const handleFeedback = (e: React.FormEvent) => {
+  const handleFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    addFeedback({ eventId: event.id, userId: user.id, userName: user.name, rating, comments });
-    toast({ title: 'Feedback submitted!', description: 'Thank you for your feedback.' });
-    setComments('');
+    const result = await addFeedback(event.id, rating, comments);
+    if (result.ok) {
+      toast({ title: 'Feedback submitted!', description: 'Thank you for your feedback.' });
+      setComments('');
+    } else {
+      toast({ title: 'Failed to submit feedback', description: result.error ?? 'Please try again.', variant: 'destructive' });
+    }
   };
 
   return (
@@ -131,11 +145,11 @@ const EventDetail = () => {
             {alreadyFeedback && (
               <p className="text-sm text-muted-foreground italic mb-4">✅ You've already submitted feedback for this event.</p>
             )}
-            {feedbacks.length === 0 ? (
+            {eventFeedbacks.length === 0 ? (
               <p className="text-sm text-muted-foreground">No feedback yet. Be the first to share your thoughts!</p>
             ) : (
               <div className="space-y-3">
-                {feedbacks.map(fb => (
+                {eventFeedbacks.map(fb => (
                   <div key={fb.id} className="rounded-xl border border-border/50 bg-background/50 p-4 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

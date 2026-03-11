@@ -95,7 +95,7 @@ const Index = () => {
                       </Button>
                     </Link>
                     <Link to="/login">
-                      <Button size="lg" variant="outline" className="gap-2 text-base font-bold rounded-xl border-2 h-13 px-8 hover:bg-muted transition-all">
+                      <Button size="lg" variant="outline" className="gap-2 text-base font-bold rounded-xl border-2 h-13 px-8 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
                         Sign In <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>

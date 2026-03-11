@@ -3,6 +3,7 @@ import { useEvents } from '@/context/EventContext';
 import { useRegistrations } from '@/context/RegistrationContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { Navigate, Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import EventCard from '@/components/EventCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,17 +33,34 @@ const StatCard = ({ icon: Icon, value, label, color, accent }: { icon: any; valu
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const { events } = useEvents();
-  const { getUserRegistrations, getEventRegistrations } = useRegistrations();
-  const { feedbacks } = useFeedback();
+  const { registrations, loadEventRegistrations } = useRegistrations();
+  const { feedbacks, loadEventFeedbacks } = useFeedback();
 
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
 
   const isAdmin = user.role === 'college_admin';
   const myEvents = isAdmin ? events.filter(e => e.collegeName === user.college) : events;
-  const myRegs = getUserRegistrations(user.id);
-  const totalRegs = isAdmin ? myEvents.reduce((sum, e) => sum + getEventRegistrations(e.id).length, 0) : 0;
-  const pendingRegs = isAdmin ? myEvents.reduce((sum, e) => sum + getEventRegistrations(e.id).filter(r => r.status === 'pending').length, 0) : 0;
-  const eventFeedbacks = isAdmin ? feedbacks.filter(f => myEvents.some(e => e.id === f.eventId)) : [];
+
+  // Load registrations/feedback for admin's events on mount
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (isAdmin) {
+      myEvents.forEach(e => {
+        loadEventRegistrations(e.id);
+        loadEventFeedbacks(e.id);
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, events.length]);
+
+  // Student: registrations belonging to this user
+  const myRegs = registrations.filter(r => r.userId === user.id);
+
+  // Admin: registrations for events in this college
+  const myEventIds = new Set(myEvents.map(e => e.id));
+  const totalRegs = isAdmin ? registrations.filter(r => myEventIds.has(r.eventId)).length : 0;
+  const pendingRegs = isAdmin ? registrations.filter(r => myEventIds.has(r.eventId) && r.status === 'pending').length : 0;
+  const eventFeedbacks = isAdmin ? feedbacks.filter(f => myEventIds.has(f.eventId)) : [];
 
   return (
     <div className="container py-8 space-y-8">

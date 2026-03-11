@@ -11,17 +11,21 @@ import { motion } from 'framer-motion';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email, password)) {
+    setLoading(true);
+    const result = await login(email, password);
+    setLoading(false);
+    if (result.ok) {
       toast({ title: 'Welcome back!', description: 'You have been logged in successfully.' });
       navigate('/dashboard');
     } else {
-      toast({ title: 'Login failed', description: 'Invalid credentials. Try demo accounts.', variant: 'destructive' });
+      toast({ title: 'Login failed', description: result.error ?? 'Invalid credentials.', variant: 'destructive' });
     }
   };
 
@@ -94,8 +98,8 @@ const Login = () => {
                 <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="pl-10 h-12 rounded-xl border-2 font-medium focus:border-primary" required />
               </div>
             </div>
-            <Button type="submit" className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-base brutal-shadow-primary hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all gap-2">
-              Sign In <ArrowRight className="h-4 w-4" />
+            <Button type="submit" disabled={loading} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-base brutal-shadow-primary hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all gap-2">
+              {loading ? 'Signing in...' : <> Sign In <ArrowRight className="h-4 w-4" /></>}
             </Button>
           </form>
 

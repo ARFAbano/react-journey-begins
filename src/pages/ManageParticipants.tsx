@@ -1,4 +1,5 @@
 import { useParams, Navigate, Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useEvents } from '@/context/EventContext';
 import { useAuth } from '@/context/AuthContext';
 import { useRegistrations } from '@/context/RegistrationContext';
@@ -15,8 +16,8 @@ const ManageParticipants = () => {
   const { id } = useParams();
   const { events } = useEvents();
   const { user, isAuthenticated } = useAuth();
-  const { getEventRegistrations, updateStatus } = useRegistrations();
-  const { getEventFeedbacks } = useFeedback();
+  const { registrations, updateStatus, loadEventRegistrations } = useRegistrations();
+  const { feedbacks, loadEventFeedbacks } = useFeedback();
   const { toast } = useToast();
 
   if (!isAuthenticated || !user || user.role !== 'college_admin') return <Navigate to="/dashboard" replace />;
@@ -25,15 +26,27 @@ const ManageParticipants = () => {
   if (!event) return <Navigate to="/dashboard" replace />;
   if (event.collegeName !== user.college) return <Navigate to="/dashboard" replace />;
 
-  const registrations = getEventRegistrations(event.id);
-  const feedbacks = getEventFeedbacks(event.id);
-  const avgRating = feedbacks.length > 0 ? (feedbacks.reduce((s, f) => s + f.rating, 0) / feedbacks.length).toFixed(1) : 'N/A';
-  const approved = registrations.filter(r => r.status === 'approved').length;
-  const pending = registrations.filter(r => r.status === 'pending').length;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (id) {
+      loadEventRegistrations(id);
+      loadEventFeedbacks(id);
+    }
+  }, [id, loadEventRegistrations, loadEventFeedbacks]);
 
-  const handleStatus = (regId: string, status: 'approved' | 'rejected') => {
-    updateStatus(regId, status);
-    toast({ title: `Registration ${status}`, description: `Participant has been ${status}.` });
+  const eventRegistrations = registrations.filter(r => r.eventId === event.id);
+  const eventFeedbacks = feedbacks.filter(f => f.eventId === event.id);
+  const avgRating = eventFeedbacks.length > 0 ? (eventFeedbacks.reduce((s, f) => s + f.rating, 0) / eventFeedbacks.length).toFixed(1) : 'N/A';
+  const approved = eventRegistrations.filter(r => r.status === 'approved').length;
+  const pending = eventRegistrations.filter(r => r.status === 'pending').length;
+
+  const handleStatus = async (regId: string, status: 'approved' | 'rejected') => {
+    const result = await updateStatus(regId, status);
+    if (result.ok) {
+      toast({ title: `Registration ${status}`, description: `Participant has been ${status}.` });
+    } else {
+      toast({ title: 'Update failed', description: result.error ?? 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const statusStyles: Record<string, string> = {
@@ -57,10 +70,10 @@ const ManageParticipants = () => {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4 section-fade-delay-1">
         {[
-          { icon: Users, value: registrations.length, label: 'Total', color: 'bg-primary/10 text-primary' },
+          { icon: Users, value: eventRegistrations.length, label: 'Total', color: 'bg-primary/10 text-primary' },
           { icon: CheckCircle2, value: approved, label: 'Approved', color: 'bg-campus-green/10 text-campus-green' },
           { icon: Clock, value: pending, label: 'Pending', color: 'bg-campus-amber/10 text-campus-amber' },
-          { icon: Star, value: `${avgRating}`, label: `Rating (${feedbacks.length})`, color: 'bg-campus-amber/10 text-campus-amber' },
+          { icon: Star, value: `${avgRating}`, label: `Rating (${eventFeedbacks.length})`, color: 'bg-campus-amber/10 text-campus-amber' },
         ].map((s, i) => (
           <div key={i} className="stat-card">
             <div className="relative z-10 flex items-center gap-3">
@@ -79,13 +92,13 @@ const ManageParticipants = () => {
       <div className="section-fade-delay-2">
         <Tabs defaultValue="registrations">
           <TabsList className="rounded-xl">
-            <TabsTrigger value="registrations" className="rounded-lg">Registrations ({registrations.length})</TabsTrigger>
-            <TabsTrigger value="feedback" className="rounded-lg">Feedback ({feedbacks.length})</TabsTrigger>
+            <TabsTrigger value="registrations" className="rounded-lg">Registrations ({eventRegistrations.length})</TabsTrigger>
+            <TabsTrigger value="feedback" className="rounded-lg">Feedback ({eventFeedbacks.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="registrations" className="mt-4">
             <div className="glass-card rounded-2xl overflow-hidden">
-              {registrations.length === 0 ? (
+              {eventRegistrations.length === 0 ? (
                 <div className="p-12 text-center">
                   <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                   <p className="text-muted-foreground">No registrations yet</p>
@@ -103,7 +116,7 @@ const ManageParticipants = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {registrations.map(reg => (
+                    {eventRegistrations.map(reg => (
                       <TableRow key={reg.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -143,7 +156,7 @@ const ManageParticipants = () => {
 
           <TabsContent value="feedback" className="mt-4">
             <div className="glass-card rounded-2xl p-6">
-              {feedbacks.length === 0 ? (
+              {eventFeedbacks.length === 0 ? (
                 <div className="p-8 text-center">
                   <Star className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                   <p className="text-muted-foreground">No feedback yet</p>
@@ -153,8 +166,8 @@ const ManageParticipants = () => {
                   {/* Rating Distribution */}
                   <div className="grid gap-2 sm:grid-cols-5 mb-6 p-4 rounded-xl bg-muted/30">
                     {[5, 4, 3, 2, 1].map(star => {
-                      const count = feedbacks.filter(f => f.rating === star).length;
-                      const pct = Math.round((count / feedbacks.length) * 100);
+                      const count = eventFeedbacks.filter(f => f.rating === star).length;
+                      const pct = Math.round((count / eventFeedbacks.length) * 100);
                       return (
                         <div key={star} className="flex items-center gap-2 text-sm">
                           <span className="flex items-center gap-0.5 w-8 shrink-0">
@@ -168,7 +181,7 @@ const ManageParticipants = () => {
                       );
                     })}
                   </div>
-                  {feedbacks.map(fb => (
+                  {eventFeedbacks.map(fb => (
                     <div key={fb.id} className="rounded-xl border border-border/50 bg-background/50 p-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">

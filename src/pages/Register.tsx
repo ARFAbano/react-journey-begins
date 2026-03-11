@@ -16,17 +16,21 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [college, setCollege] = useState('');
   const [role, setRole] = useState<UserRole>('student');
+  const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (register(name, email, password, college, role)) {
-      toast({ title: 'Account created!', description: 'Welcome to CampusEventHub.' });
-      navigate('/dashboard');
+    setLoading(true);
+    const result = await register(name, email, password, college, role);
+    setLoading(false);
+    if (result.ok) {
+      toast({ title: 'Account created!', description: 'Please sign in to continue.' });
+      navigate('/login');
     } else {
-      toast({ title: 'Registration failed', description: 'Email already exists.', variant: 'destructive' });
+      toast({ title: 'Registration failed', description: result.error ?? 'Please try again.', variant: 'destructive' });
     }
   };
 
@@ -115,8 +119,8 @@ const Register = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-base brutal-shadow-primary hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all gap-2 mt-2">
-              Create Account <ArrowRight className="h-4 w-4" />
+            <Button type="submit" disabled={loading} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-base brutal-shadow-primary hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all gap-2 mt-2">
+              {loading ? 'Creating Account...' : <> Create Account <ArrowRight className="h-4 w-4" /></>}
             </Button>
           </form>
 

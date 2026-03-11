@@ -17,11 +17,18 @@ export interface CollegeEvent {
   title: string;
   description: string;
   category: EventCategory;
+  /** Frontend alias for venue */
   location: string;
+  /** Backend field name */
+  venue?: string;
   startDate: string;
   endDate: string;
   createdAt: string;
   image?: string;
+  /** Backend extra fields */
+  maxAttendees?: number;
+  status?: string;
+  organizer?: { _id: string; name: string; email: string; college: string };
 }
 
 export interface Registration {
