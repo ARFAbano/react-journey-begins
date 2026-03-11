@@ -21,17 +21,17 @@ const EventListing = () => {
   const { events } = useEvents();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
-  const [college, setCollege] = useState('all');
+  // const [college, setCollege] = useState('all');
 
   const filtered = useMemo(() => {
     return events.filter(e => {
       const matchSearch = e.title.toLowerCase().includes(search.toLowerCase()) ||
         e.description.toLowerCase().includes(search.toLowerCase());
       const matchCategory = category === 'all' || e.category === category;
-      const matchCollege = college === 'all' || e.collegeName === college;
-      return matchSearch && matchCategory && matchCollege;
+      // const matchCollege = college === 'all' || e.collegeName === college;
+      return matchSearch && matchCategory ;
     });
-  }, [events, search, category, college]);
+  }, [events, search, category]);
 
   return (
     <div className="container py-8 space-y-6">
@@ -74,13 +74,7 @@ const EventListing = () => {
               {CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={college} onValueChange={setCollege}>
-            <SelectTrigger className="w-full sm:w-52 h-12 rounded-xl border-2 font-medium"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Colleges</SelectItem>
-              {COLLEGES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          
         </div>
       </motion.div>
 
