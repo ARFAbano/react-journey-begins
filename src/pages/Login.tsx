@@ -99,7 +99,7 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="rounded-xl border-2 border-border bg-card p-4 space-y-2">
+          {/* <div className="rounded-xl border-2 border-border bg-card p-4 space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
               <Sparkles className="h-3.5 w-3.5 text-accent" />
               Demo Accounts
@@ -115,7 +115,7 @@ const Login = () => {
               </div>
             </div>
             <p className="text-[10px] text-muted-foreground text-center pt-0.5">Use any password to login</p>
-          </div>
+          </div> */}
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{' '}
