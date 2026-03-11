@@ -6,14 +6,17 @@ import { useState } from 'react';
 
 const NavItem = ({ to, icon: Icon, label, active }: { to: string; icon: any; label: string; active: boolean }) => (
   <Link to={to}>
-    <Button
-      variant="ghost"
-      size="sm"
-      className={`gap-1.5 rounded-lg transition-all duration-200 ${active ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-muted'}`}
+    <button
+      className={`relative px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 ${
+        active 
+          ? 'text-primary bg-primary/10' 
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+      }`}
     >
       <Icon className="h-4 w-4" />
       {label}
-    </Button>
+      {active && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full" />}
+    </button>
   </Link>
 );
 
@@ -29,14 +32,14 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border/50 bg-card/70 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur-sm">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-            <GraduationCap className="h-5 w-5 text-primary" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary group-hover:scale-105 transition-transform">
+            <GraduationCap className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-display text-lg font-bold text-foreground tracking-tight">
-            Campus<span className="text-accent">Event</span>Hub
+          <span className="font-display text-lg font-extrabold text-foreground tracking-tight">
+            Campus<span className="text-primary">Event</span>Hub
           </span>
         </Link>
 
@@ -50,16 +53,18 @@ const Navbar = () => {
                 <NavItem to="/create-event" icon={Plus} label="Create" active={location.pathname === '/create-event'} />
               )}
               <div className="ml-3 flex items-center gap-2">
-                <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-3.5 py-1.5">
-                  <div className="h-6 w-6 rounded-full gradient-campus flex items-center justify-center text-[10px] font-bold text-primary-foreground">
+                <div className="flex items-center gap-2 rounded-xl border-2 border-border bg-card px-3 py-1.5">
+                  <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center text-xs font-extrabold text-primary-foreground">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm font-medium">{user?.name}</span>
-                  <span className="rounded-full bg-accent/15 text-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                    {user?.role === 'college_admin' ? 'Admin' : 'Student'}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold leading-tight">{user?.name}</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      {user?.role === 'college_admin' ? 'Admin' : 'Student'}
+                    </span>
+                  </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout" className="hover:bg-destructive/10 hover:text-destructive rounded-lg">
+                <Button variant="outline" size="icon" onClick={handleLogout} title="Logout" className="rounded-lg border-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30">
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
@@ -67,53 +72,56 @@ const Navbar = () => {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/login">
-                <Button variant="ghost" size="sm" className="rounded-lg">Login</Button>
+                <Button variant="ghost" size="sm" className="rounded-lg font-semibold">Login</Button>
               </Link>
               <Link to="/register">
-                <Button size="sm" className="rounded-lg gradient-campus border-0 text-primary-foreground hover:opacity-90">Sign Up</Button>
+                <Button size="sm" className="rounded-lg bg-primary text-primary-foreground font-bold brutal-shadow-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all">Sign Up</Button>
               </Link>
             </div>
           )}
         </div>
 
         {/* Mobile toggle */}
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
+        <Button variant="outline" size="icon" className="md:hidden border-2" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border/50 bg-card/95 backdrop-blur-xl animate-fade-in p-4 space-y-2">
+        <div className="md:hidden border-t-2 border-border bg-card animate-fade-in p-4 space-y-2">
           {isAuthenticated ? (
             <>
               <Link to="/events" onClick={() => setMobileOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start gap-2"><CalendarDays className="h-4 w-4" />Events</Button>
+                <Button variant="ghost" className="w-full justify-start gap-2 font-semibold"><CalendarDays className="h-4 w-4" />Events</Button>
               </Link>
               <Link to="/dashboard" onClick={() => setMobileOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start gap-2"><LayoutDashboard className="h-4 w-4" />Dashboard</Button>
+                <Button variant="ghost" className="w-full justify-start gap-2 font-semibold"><LayoutDashboard className="h-4 w-4" />Dashboard</Button>
               </Link>
               {user?.role === 'college_admin' && (
                 <Link to="/create-event" onClick={() => setMobileOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start gap-2"><Plus className="h-4 w-4" />Create Event</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-2 font-semibold"><Plus className="h-4 w-4" />Create Event</Button>
                 </Link>
               )}
-              <div className="border-t border-border/50 pt-2 mt-2">
-                <div className="flex items-center justify-between px-2">
-                  <span className="text-sm font-medium">{user?.name}</span>
-                  <Button variant="ghost" size="sm" onClick={handleLogout} className="text-destructive gap-1">
-                    <LogOut className="h-3.5 w-3.5" />Logout
-                  </Button>
+              <div className="border-t-2 border-border pt-3 mt-3 flex items-center justify-between px-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-xs font-extrabold text-primary-foreground">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-bold">{user?.name}</span>
                 </div>
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-destructive gap-1 font-semibold">
+                  <LogOut className="h-3.5 w-3.5" />Logout
+                </Button>
               </div>
             </>
           ) : (
             <>
               <Link to="/login" onClick={() => setMobileOpen(false)}>
-                <Button variant="ghost" className="w-full">Login</Button>
+                <Button variant="ghost" className="w-full font-semibold">Login</Button>
               </Link>
               <Link to="/register" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full">Sign Up</Button>
+                <Button className="w-full font-semibold">Sign Up</Button>
               </Link>
             </>
           )}
