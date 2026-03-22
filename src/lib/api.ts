@@ -75,6 +75,7 @@ export interface BackendEvent {
 export interface EventFilters {
   category?: string;
   college?: string;
+  venue?: string;
   startDate?: string;
   endDate?: string;
   search?: string;
@@ -107,6 +108,8 @@ export const eventsApi = {
     api.put<{ event: BackendEvent }>(`/events/${id}`, payload).then((r) => r.data),
   delete: (id: string) =>
     api.delete(`/events/${id}`).then((r) => r.data),
+  getColleges: () =>
+    api.get<{ colleges: string[] }>('/events/colleges').then((r) => r.data.colleges),
 };
 
 /* ─────────────────────────── REGISTRATIONS ─────────────────────────── */
