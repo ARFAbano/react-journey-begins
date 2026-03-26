@@ -33,7 +33,7 @@ const StatCard = ({ icon: Icon, value, label, color, accent }: { icon: any; valu
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const { events } = useEvents();
-  const { registrations, loadEventRegistrations } = useRegistrations();
+  const { registrations, loadEventRegistrations, loadMyRegistrations } = useRegistrations();
   const { feedbacks, loadEventFeedbacks } = useFeedback();
 
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
@@ -49,9 +49,11 @@ const Dashboard = () => {
         loadEventRegistrations(e.id);
         loadEventFeedbacks(e.id);
       });
+    } else {
+      loadMyRegistrations();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin, events.length]);
+  }, [isAdmin, events.length, loadMyRegistrations]);
 
   // Student: registrations belonging to this user
   const myRegs = registrations.filter(r => r.userId === user.id);

@@ -32,7 +32,7 @@ const EventDetail = () => {
   const { id } = useParams();
   const { events } = useEvents();
   const { user, isAuthenticated } = useAuth();
-  const { registrations, registerForEvent, isRegistered } = useRegistrations();
+  const { registrations, registerForEvent, isRegistered, loadMyRegistrations } = useRegistrations();
   const { feedbacks, addFeedback, loadEventFeedbacks, hasUserFeedback } = useFeedback();
   const { toast } = useToast();
 
@@ -41,10 +41,12 @@ const EventDetail = () => {
 
   const event = events.find(e => e.id === id);
 
-  // Load feedbacks for this event on mount
+  // Load feedbacks & registrations on mount
   useEffect(() => {
     if (id) loadEventFeedbacks(id);
-  }, [id, loadEventFeedbacks]);
+    if (isAuthenticated && user?.role === 'student') loadMyRegistrations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, loadEventFeedbacks, isAuthenticated, user?.role, loadMyRegistrations]);
 
   if (!event) return <Navigate to="/events" replace />;
 

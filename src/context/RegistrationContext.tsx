@@ -4,11 +4,11 @@ import { registrationsApi, BackendRegistration } from '@/lib/api';
 
 const mapRegistration = (r: BackendRegistration): Registration => ({
   id: r._id,
-  eventId: r.event_id,
-  userId: typeof r.user_id === 'object' ? r.user_id._id : (r.user_id as string),
-  userName: typeof r.user_id === 'object' ? r.user_id.name : '',
-  userEmail: typeof r.user_id === 'object' ? r.user_id.email : '',
-  userCollege: '',
+  eventId: r.event_id && typeof r.event_id === 'object' ? (r.event_id as any)._id : r.event_id,
+  userId: r.user_id && typeof r.user_id === 'object' ? r.user_id._id : (r.user_id as unknown as string) || '',
+  userName: r.user_id && typeof r.user_id === 'object' ? r.user_id.name || 'Unknown User' : 'Unknown User',
+  userEmail: r.user_id && typeof r.user_id === 'object' ? r.user_id.email || '' : '',
+  userCollege: r.user_id && typeof r.user_id === 'object' && r.user_id.college ? r.user_id.college : '',
   status: r.status,
   registeredAt: r.createdAt,
 });
@@ -18,6 +18,7 @@ interface RegistrationContextType {
   registerForEvent: (eventId: string) => Promise<{ ok: boolean; error?: string }>;
   updateStatus: (regId: string, status: Registration['status']) => Promise<{ ok: boolean; error?: string }>;
   loadEventRegistrations: (eventId: string) => Promise<void>;
+  loadMyRegistrations: () => Promise<void>;
   isRegistered: (eventId: string, userId: string) => boolean;
 }
 
@@ -57,8 +58,23 @@ export const RegistrationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const others = prev.filter((r) => r.eventId !== eventId);
         return [...others, ...mapped];
       });
-    } catch {
+    } catch (err) {
+      console.error("Failed to load registrations:", err);
       // Admin-only endpoint: silently ignore if not authorized
+    }
+  }, []);
+
+  const loadMyRegistrations = useCallback(async () => {
+    try {
+      const data = await registrationsApi.getMyRegistrations();
+      const mapped = data.map(mapRegistration);
+      setRegistrations((prev) => {
+        const prevIds = new Set(mapped.map(m => m.id));
+        const others = prev.filter(p => !prevIds.has(p.id));
+        return [...others, ...mapped];
+      });
+    } catch (err) {
+      console.error("Failed to load my registrations:", err);
     }
   }, []);
 
@@ -88,7 +104,7 @@ export const RegistrationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   return (
     <RegistrationContext.Provider
-      value={{ registrations, registerForEvent, updateStatus, loadEventRegistrations, isRegistered }}
+      value={{ registrations, registerForEvent, updateStatus, loadEventRegistrations, loadMyRegistrations, isRegistered }}
     >
       {children}
     </RegistrationContext.Provider>

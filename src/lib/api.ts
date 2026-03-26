@@ -117,7 +117,7 @@ export const eventsApi = {
 export interface BackendRegistration {
   _id: string;
   event_id: string;
-  user_id: { _id: string; name: string; email: string };
+  user_id: { _id: string; name: string; email: string; college?: string };
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
 }
@@ -125,6 +125,8 @@ export interface BackendRegistration {
 export const registrationsApi = {
   register: (eventId: string) =>
     api.post<BackendRegistration>(`/events/${eventId}/register`).then((r) => r.data),
+  getMyRegistrations: () =>
+    api.get<BackendRegistration[]>('/events/my-registrations').then((r) => r.data),
   getForEvent: (eventId: string) =>
     api.get<BackendRegistration[]>(`/admin/events/${eventId}/registrations`).then((r) => r.data),
   updateStatus: (regId: string, status: 'pending' | 'approved' | 'rejected') =>
